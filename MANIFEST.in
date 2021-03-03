@@ -1,0 +1,14 @@
+graft scripts
+graft src
+graft tests
+
+include CHANGELOG.md
+include Dockerfile
+include LICENSE
+include README.md
+include tox.ini
+
+recursive-include notebooks *.ipynb
+recursive-exclude .idea *
+
+global-exclude *.py[cod] __pycache__/* *.so *.dylib
