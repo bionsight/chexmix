@@ -1,4 +1,5 @@
 # ChexMix: a Content Extraction Tool for Bioentities in Literature
+##### [https://doi.org/10.1101/2021.03.09.434525](https://doi.org/10.1101/2021.03.09.434525)
 Biomedical databases grow by more than a thousand new publications every day.
 The large volume of biomedical literature which are being published at an unprecedented rate hinders discovering
 the relevant knowledge from keywords of interest, getting insights and forming hypotheses.
@@ -10,7 +11,8 @@ with allied species in Korean native plants or extract MeSH identifiers for the 
 the keywords in the same literature. We applied ChexMix to discover allied species related to a keyword of interest and 
 experimentally proved the usefulness of ChexMix or multi species.
 
-[https://doi.org/10.1101/2021.03.09.434525](https://doi.org/10.1101/2021.03.09.434525)
+
+
 <img src = "./img/chexmix_overview.jpg" width="49%" height="49%"><img src = "./img/chexmix_graph.jpeg" width="49%" height="49%">
 
 ## Installation
