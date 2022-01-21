@@ -1,0 +1,13 @@
+services:
+  chexmix:
+    image: "jupyter/datascience-notebook:latest"
+    init: True
+    container_name: "${USER}_chexmix"
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      NOTEBOOK_ARGS: "--NotebookApp.token=${JUPYTER_TOKEN:-chexmix}"
+    shm_size: "2gb"
+    ports:
+      - "${CHEXMIX_PORT:-8888}:8888"
+    volumes:
+      - "./:/home/jovyan/chemix/"
