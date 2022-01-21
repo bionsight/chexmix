@@ -40,7 +40,10 @@ Often it is convenient to work in a reproducible environment by docker, and [Jup
 ```
 docker run --rm -p 8888:8888 -v "$PWD":/home/jovyan/chemix -e JUPYTER_ENABLE_LAB=yes jupyter/datascience-notebook:latest
 ```
-
+or use docker-compose
+```
+docker-compose up
+```
 ## Usage
 There are 4 graph types inherited from class `BioGraph` that includes the following relationships:
 
