@@ -10,4 +10,4 @@ services:
     ports:
       - "${CHEXMIX_PORT:-8888}:8888"
     volumes:
-      - "./:/home/jovyan/chemix/"
+      - "./:/home/jovyan/chexmix/"
