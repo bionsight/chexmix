@@ -1,5 +1,6 @@
-import chexmix.graph as graph
 import pytest
+
+import chexmix.graph as graph
 
 
 @pytest.fixture
@@ -9,7 +10,11 @@ def some_data():
 
 @pytest.fixture
 def pubtator_table():
-    return {1: ['MESH:D050197', 'TAXO:9606', 'MESH:D001157'], 2: ['MESH:D001157'], 3: ['MESH:D001157']}
+    return {
+        1: ['MESH:D050197', 'TAXO:9606', 'MESH:D001157'],
+        2: ['MESH:D001157', 'GENE:2152'],
+        3: ['MESH:D001157', 'MUTA:p.R81T']
+    }
 
 
 @pytest.fixture
