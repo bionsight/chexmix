@@ -26,7 +26,7 @@ def parse_payload(payload):
 def get_id(annotation):
     if annotation['id'] and annotation['id'].startswith('MESH:'):
         return annotation['id']
-    headers = {'Species': 'TAXO', 'Gene': 'GENE', 'Mutation': 'MUTA'}
+    headers = {'Species': 'TAXO', 'Gene': 'GENE'}
     annotation_header = headers.get(annotation['type'], None)
     if annotation_header is not None:
         return f'{annotation_header}:{annotation["id"]}'

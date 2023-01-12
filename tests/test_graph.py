@@ -12,9 +12,9 @@ def test_PubMedGraph(pubmed_table):
 def test_PubTatorGraph(pubtator_table):
     nodes, edges = graph.PubTatorGraph.nodes_and_edges_from_pubtator(pubtator_table)
     pubtator_graph = graph.PubTatorGraph(nodes, edges)
-    assert len(pubtator_graph.nodes()) == 8
-    assert len(pubtator_graph.edges()) == 7
-    assert pubtator_graph.get_bioentities() == {'D050197': 1, 9606: 1, 'D001157': 3, 2152: 1, 'p.R81T': 1}
+    assert len(pubtator_graph.nodes()) == 7
+    assert len(pubtator_graph.edges()) == 6
+    assert pubtator_graph.get_bioentities() == {'D050197': 1, 9606: 1, 'D001157': 3, 2152: 1}
 
 
 def test_MeSHGraph(mesh_table):

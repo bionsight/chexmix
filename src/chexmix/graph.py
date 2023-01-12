@@ -26,7 +26,6 @@ class NodeType(Enum):
     MeSH = 'MeSH'
     Literature = 'Literature'
     Gene = 'Gene'
-    Mutation = 'Mutation'
 
 
 class EdgeType(Enum):
@@ -375,7 +374,6 @@ class PubTatorGraph(BioGraph):
             'TAXO': NodeType.Taxonomy.value,
             'MESH': NodeType.MeSH.value,
             'GENE': NodeType.Gene.value,
-            'MUTA': NodeType.Mutation.value
         }
         nodes, edges = [], []
         ncbi_ids = [ncbi_id for bioentities in pubtator_table.values() for ncbi_id in bioentities]
