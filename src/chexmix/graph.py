@@ -25,6 +25,7 @@ class NodeType(Enum):
     Taxonomy = 'Taxonomy'
     MeSH = 'MeSH'
     Literature = 'Literature'
+    Gene = 'Gene'
 
 
 class EdgeType(Enum):
@@ -369,7 +370,11 @@ class PubTatorGraph(BioGraph):
         :param pubtator_table: pubtator data
         :return: nodes and edge with attribute
         """
-        bioentity_node_types = {'TAXO': NodeType.Taxonomy.value, 'MESH': NodeType.MeSH.value}
+        bioentity_node_types = {
+            'TAXO': NodeType.Taxonomy.value,
+            'MESH': NodeType.MeSH.value,
+            'GENE': NodeType.Gene.value,
+        }
         nodes, edges = [], []
         ncbi_ids = [ncbi_id for bioentities in pubtator_table.values() for ncbi_id in bioentities]
         ncbi_id_count = Counter(ncbi_ids)
