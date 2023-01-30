@@ -13,6 +13,7 @@ NodeId = Union[str, int]
 NodeAttr = Dict[str, Any]
 EdgeAttr = Dict[str, Any]
 
+
 class Header:
     Article = 'ARTI'
     Taxonomy = 'TAXO'
@@ -20,6 +21,7 @@ class Header:
     ChemOnto = 'CLFR'
     Chemical = 'INCK'
     Gene = 'GENE'
+
 
 class TaxParentType(Enum):
     Genus = 'Genus'
