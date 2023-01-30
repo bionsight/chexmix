@@ -13,6 +13,13 @@ NodeId = Union[str, int]
 NodeAttr = Dict[str, Any]
 EdgeAttr = Dict[str, Any]
 
+class Header:
+    Article = 'ARTI'
+    Taxonomy = 'TAXO'
+    MeSH = 'MeSH'
+    ChemOnto = 'CLFR'
+    Chemical = 'INCK'
+    Gene = 'GENE'
 
 class TaxParentType(Enum):
     Genus = 'Genus'
@@ -24,6 +31,8 @@ class NodeType(Enum):
     Article = 'Article'
     Taxonomy = 'Taxonomy'
     MeSH = 'MeSH'
+    ChemOnto = 'ClassyFire Chemical Ontology'
+    Chemical = 'Chemical'
     Literature = 'Literature'
     Gene = 'Gene'
 
@@ -33,6 +42,14 @@ class EdgeType(Enum):
     APPEARED_IN = 'APPEARED_IN'
     IS_A = 'IS_A'
     INCLUDES = 'INCLUDES'
+    CONTAINS = 'CONTAINS'
+
+    @staticmethod
+    def reverse(edge_type: str):
+        if edge_type.startswith('_'):
+            return edge_type[1:]
+        else:
+            return '_' + edge_type
 
 
 mesh_type = {
@@ -245,6 +262,49 @@ class BioGraph(nx.DiGraph):
         """
         header = node[:4]
         return header
+
+    def get_table(self) -> Dict[NodeId, Dict]:
+        """Get table from graph.
+
+        :return: table
+        """
+        nodes = self.nodes(data=True)
+        edges = self.edges(data=True)
+        table = {}
+        for node, node_attr in nodes:
+            node_attr['relationship'] = {}
+            table[node] = node_attr
+        for s_node, e_node, edge_attr in edges:
+            edge_type = edge_attr['type']
+            reverse_edge_type = "_" + edge_type
+            BioGraph.__set_relationship(table, edge_type, s_node, e_node)
+            BioGraph.__set_relationship(table, reverse_edge_type, e_node, s_node)
+        return table
+
+    @staticmethod
+    def __set_relationship(table, edge_type, s_node, e_node):
+        """ Set relationship attributes in table
+
+        :param table: entities table
+        :param edge_type: type of edge
+        :param s_node: start node
+        :param e_node: end node
+        :return:
+        """
+        if edge_type in table[s_node]['relationship']:
+            table[s_node]['relationship'][edge_type].append(e_node)
+        else:
+            table[s_node]['relationship'][edge_type] = [e_node]
+
+    @staticmethod
+    def create_node_id(header: Header, raw_id: Union[int, str]) -> str:
+        """create node name (ex. 'TAXO:9606', 'MESH:C01034')
+
+        :param header: header of node
+        :param raw_id: raw id
+        :return: node name
+        """
+        return f"{header}:{raw_id}"
 
 
 class BioEntityGraph(BioGraph):
@@ -559,3 +619,77 @@ class MeSHGraph(BioEntityGraph):
             if mesh_id in mesh_table and 'tree_numbers' in mesh_table[mesh_id]:
                 tree_numbers.update(mesh_table[mesh_id]['tree_numbers'])
         return tree_numbers
+
+
+class HierarchicalGraph(BioGraph):
+    def is_descendant(self, node_id1: str, node_id2: str) -> bool:
+        """return True if a node of 'node_id1' is a desecendant of that of 'node_id2'
+
+        :param node_id1: node id
+        :param node_id2: node id
+        :return: bool
+        """
+        raise NotImplementedError('This function need to implement on inherited class')
+
+
+class ClassyFireGraph(HierarchicalGraph):
+    level_index = ['kingdom', 'superclass', 'class', 'subclass', 'level5', 'level6', 'level7',
+                   'level8', 'level9', 'level10', 'level11', 'level12']
+
+    @classmethod
+    def from_classyfire_entities(cls, entities):
+        nodes, edges = [], []
+        for entity in entities:
+            ns, es = cls.nodes_and_edges_from_entity(entity)
+            nodes += ns
+            for edge in es:
+                if edge not in edges:
+                    edges.append(edge)
+        # nodes and edges may have duplicated elements
+        return cls(nodes, edges)
+
+    @staticmethod
+    def nodes_and_edges_from_entity(entity):
+        """
+        make nodes and edges from entity queried by classyfire_API
+        :param entity:
+        :return:
+        """
+        nodes = []
+        inchikey = entity['inchikey']
+        lineage = []
+        lineage_ids = []
+        for level in ['kingdom', 'superclass', 'class', 'subclass']:
+            if entity[level] == entity['direct_parent']:
+                break
+            else:
+                lineage.append(entity[level])
+        lineage += entity['intermediate_nodes']
+        lineage.append(entity['direct_parent'])
+        for level, node in zip(ClassyFireGraph.level_index, lineage):
+            node_id = HierarchicalGraph.create_node_id(Header.ChemOnto, node['chemont_id'][10:])
+            name = node['name']
+            nodes.append((node_id, {
+                'level': level,
+                'name': name,
+                'chemont_id': node['chemont_id'],
+                'lineage': lineage_ids.copy(),
+                'type': NodeType.ChemOnto.value
+            }))
+            lineage_ids.append(node_id)
+        nodes.append((Header.Chemical + ':' + inchikey[9:], {
+            'smiles': entity['smiles'],
+            'molecular_framework': entity['molecular_framework'],
+            'parent': lineage_ids[-1],
+            'type': NodeType.Chemical.value
+        }))
+        edges = [(node1[0], node2[0], {'type': EdgeType.INCLUDES.value}) for (node1, node2) in zip(nodes, nodes[1:-1])]
+        if len(nodes) > 1:
+            edges.append((nodes[-2][0], nodes[-1][0], {'type': EdgeType.CONTAINS.value}))
+        return nodes, edges
+
+    def is_descendant(self, node_id1: str, node_id2: str) -> bool:
+        node_data = self.nodes.data()
+        node_attrs = [node_data[node_attr['parent']] if node_attr['type'] == NodeType.Chemical else node_attr
+                      for node_attr in [node_data[node_id1], node_data[node_id2]]]
+        return (node_attrs[0] == node_attrs[1]) or (node_id2 in node_attrs[0]['lineage'])
