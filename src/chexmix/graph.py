@@ -692,6 +692,6 @@ class ClassyFireGraph(HierarchicalGraph):
 
     def is_descendant(self, node_id1: str, node_id2: str) -> bool:
         node_data = self.nodes.data()
-        node_attrs = [node_data[node_attr['parent']] if node_attr['type'] == NodeType.Chemical else node_attr
+        node_attrs = [node_data[node_attr['parent']] if node_attr['type'] == NodeType.Chemical.value else node_attr
                       for node_attr in [node_data[node_id1], node_data[node_id2]]]
         return (node_attrs[0] == node_attrs[1]) or (node_id2 in node_attrs[0]['lineage'])
