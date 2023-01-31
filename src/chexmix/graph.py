@@ -278,13 +278,12 @@ class BioGraph(nx.DiGraph):
             table[node] = node_attr
         for s_node, e_node, edge_attr in edges:
             edge_type = edge_attr['type']
-            reverse_edge_type = "_" + edge_type
             BioGraph.__set_relationship(table, edge_type, s_node, e_node)
-            BioGraph.__set_relationship(table, reverse_edge_type, e_node, s_node)
+            BioGraph.__set_relationship(table, EdgeType.reverse(edge_type), e_node, s_node)
         return table
 
     @staticmethod
-    def __set_relationship(table, edge_type, s_node, e_node):
+    def __set_relationship(table: Dict, edge_type: str, s_node: str, e_node: str):
         """ Set relationship attributes in table
 
         :param table: entities table
@@ -631,7 +630,7 @@ class HierarchicalGraph(BioGraph):
         :param node_id2: node id
         :return: bool
         """
-        raise NotImplementedError('This function need to implement on inherited class')
+        raise NotImplementedError
 
 
 class ClassyFireGraph(HierarchicalGraph):
@@ -639,7 +638,7 @@ class ClassyFireGraph(HierarchicalGraph):
                    'level8', 'level9', 'level10', 'level11', 'level12']
 
     @classmethod
-    def from_classyfire_entities(cls, entities):
+    def from_classyfire_entities(cls, entities: List[Dict]):
         nodes, edges = [], []
         for entity in entities:
             ns, es = cls.nodes_and_edges_from_entity(entity)
@@ -651,16 +650,14 @@ class ClassyFireGraph(HierarchicalGraph):
         return cls(nodes, edges)
 
     @staticmethod
-    def nodes_and_edges_from_entity(entity):
+    def nodes_and_edges_from_entity(entity: Dict[str, Union[str, Dict]]):
         """
         make nodes and edges from entity queried by classyfire_API
         :param entity:
         :return:
         """
-        nodes = []
+        nodes, lineage, lineage_ids = [], [], []
         inchikey = entity['inchikey']
-        lineage = []
-        lineage_ids = []
         for level in ['kingdom', 'superclass', 'class', 'subclass']:
             if entity[level] == entity['direct_parent']:
                 break
@@ -669,17 +666,16 @@ class ClassyFireGraph(HierarchicalGraph):
         lineage += entity['intermediate_nodes']
         lineage.append(entity['direct_parent'])
         for level, node in zip(ClassyFireGraph.level_index, lineage):
-            node_id = HierarchicalGraph.create_node_id(Header.ChemOnto, node['chemont_id'][10:])
-            name = node['name']
+            node_id = HierarchicalGraph.create_node_id(Header.ChemOnto, node['chemont_id'][10:])  # CHEMONTID:0000000
             nodes.append((node_id, {
                 'level': level,
-                'name': name,
+                'name': node['name'],
                 'chemont_id': node['chemont_id'],
                 'lineage': lineage_ids.copy(),
                 'type': NodeType.ChemOnto.value
             }))
             lineage_ids.append(node_id)
-        nodes.append((Header.Chemical + ':' + inchikey[9:], {
+        nodes.append((HierarchicalGraph.create_node_id(Header.Chemical, inchikey[9:]), {
             'smiles': entity['smiles'],
             'molecular_framework': entity['molecular_framework'],
             'parent': lineage_ids[-1],

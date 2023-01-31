@@ -8,7 +8,7 @@ from chexmix.utils import iter_grouper
 CLASSYFIRE_URL = "http://classyfire.wishartlab.com/"
 
 
-def query(chem_smiles: List[str], delay: float = 0.2) -> List[str]:
+def query(chem_smileses: List[str], delay: float = 0.2) -> List[str]:
     """
     query chemical taxonomy using claasyfire-api
     :param chem_smiles: chem_smiles is multiple line of string
@@ -16,8 +16,8 @@ def query(chem_smiles: List[str], delay: float = 0.2) -> List[str]:
     :return:
     """
     query_output = []
-    for i in iter_grouper(10, chem_smiles):
-        query_input = "\n".join(i2 for i2 in i)
+    for smileses in iter_grouper(10, chem_smileses):
+        query_input = "\n".join(smiles for smiles in smileses)
         req_post = requests.post(
             f"{CLASSYFIRE_URL}queries.json",
             json={
