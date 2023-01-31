@@ -122,6 +122,7 @@ def flatten_list(lst):
     """concatenate a list of lists"""
     return list(itertools.chain.from_iterable(lst))
 
+
 def iter_grouper(n, iterable):
     """returns iterator that chunks iterable"""
     it = iter(iterable)
