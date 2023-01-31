@@ -122,6 +122,17 @@ def flatten_list(lst):
     """concatenate a list of lists"""
     return list(itertools.chain.from_iterable(lst))
 
+def iter_grouper(n, iterable):
+    """returns iterator that chunks iterable"""
+    it = iter(iterable)
+    while True:
+        chunk_it = itertools.islice(it, n)
+        try:
+            first_el = next(chunk_it)
+        except StopIteration:
+            return
+        yield itertools.chain((first_el,), chunk_it)
+
 
 def open_mode(filename, mode):
     if mode == 'r':
