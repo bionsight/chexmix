@@ -47,7 +47,7 @@ class EdgeType(Enum):
     CONTAINS = 'CONTAINS'
 
     @staticmethod
-    def reverse_id(edge_type: str):
+    def reverse_typename(edge_type: str):
         if edge_type.startswith('_'):
             return edge_type[1:]
         else:
@@ -279,7 +279,7 @@ class BioGraph(nx.DiGraph):
         for s_node, e_node, edge_attr in edges:
             edge_type = edge_attr['type']
             BioGraph.__set_relationship(table, edge_type, s_node, e_node)
-            BioGraph.__set_relationship(table, EdgeType.reverse_id(edge_type), e_node, s_node)
+            BioGraph.__set_relationship(table, EdgeType.reverse_typename(edge_type), e_node, s_node)
         return table
 
     @staticmethod
