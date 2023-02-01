@@ -7,7 +7,7 @@ import re
 from contextlib import contextmanager
 
 import pandas as pd
-
+from typing import Iterable
 import chexmix.env as env
 
 log = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ def flatten_list(lst):
     return list(itertools.chain.from_iterable(lst))
 
 
-def iter_grouper(n, iterable):
+def iter_grouper(n: int, iterable: Iterable):
     """returns iterator that chunks iterable"""
     it = iter(iterable)
     while True:

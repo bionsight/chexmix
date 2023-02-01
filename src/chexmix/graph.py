@@ -634,7 +634,7 @@ class HierarchicalGraph(BioGraph):
 
 
 class ClassyFireGraph(HierarchicalGraph):
-    level_index = ['kingdom', 'superclass', 'class', 'subclass', 'level5', 'level6', 'level7',
+    LEVEL_INDEX = ['kingdom', 'superclass', 'class', 'subclass', 'level5', 'level6', 'level7',
                    'level8', 'level9', 'level10', 'level11', 'level12']
 
     @classmethod
@@ -661,11 +661,10 @@ class ClassyFireGraph(HierarchicalGraph):
         for level in ['kingdom', 'superclass', 'class', 'subclass']:
             if entity[level] == entity['direct_parent']:
                 break
-            else:
-                lineage.append(entity[level])
+            lineage.append(entity[level])
         lineage += entity['intermediate_nodes']
         lineage.append(entity['direct_parent'])
-        for level, node in zip(ClassyFireGraph.level_index, lineage):
+        for level, node in zip(ClassyFireGraph.LEVEL_INDEX, lineage):
             node_id = HierarchicalGraph.create_node_id(Header.ChemOnto, node['chemont_id'][10:])  # CHEMONTID:0000000
             nodes.append((node_id, {
                 'level': level,
