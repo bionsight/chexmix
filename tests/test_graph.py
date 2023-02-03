@@ -96,6 +96,14 @@ def test_subgraph_from_root(bio_graph):
     assert len(sub_bio_graph2_1.edges()) == 1
 
 
+def test_get_table(bio_graph):
+    table1 = bio_graph[0].get_table()
+    table2 = bio_graph[1].get_table()
+    assert len(table1) == 5
+    assert len(table2) == 3
+    assert len(table1['2.1 : node21']['relationship']) == 2
+
+
 def test_ClassyFireGraph(classyfire_query_result):
     classyfiregraph = graph.ClassyFireGraph.from_classyfire_entities(
         classyfire_query_result

@@ -120,10 +120,10 @@ def bio_graph():
     ]
     edges1 = [
         ("1 : node1", "1.1 : node11", {"type": "test"}),
-        ("2 : node2", "2.1 : node21"),
-        ("2.1 : node21", "2.2 : node22"),
+        ("2 : node2", "2.1 : node21", {"type": "test"}),
+        ("2.1 : node21", "2.2 : node22", {"type": "test"}),
     ]
-    edges2 = [("2 : node2", "2.1 : node21")]
+    edges2 = [("2 : node2", "2.1 : node21", {"type": "test"})]
     graph1 = graph.BioGraph()
     graph2 = graph.BioGraph()
     graph1.add_nodes_from(nodes1)
