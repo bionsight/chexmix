@@ -14,12 +14,7 @@ def test_PubTatorGraph(pubtator_table):
     pubtator_graph = graph.PubTatorGraph(nodes, edges)
     assert len(pubtator_graph.nodes()) == 7
     assert len(pubtator_graph.edges()) == 6
-    assert pubtator_graph.get_bioentities() == {
-        "D050197": 1,
-        9606: 1,
-        "D001157": 3,
-        2152: 1,
-    }
+    assert pubtator_graph.get_bioentities() == {"D050197": 1, 9606: 1, "D001157": 3, 2152: 1}
 
 
 def test_MeSHGraph(mesh_table):
@@ -76,9 +71,7 @@ def test_find_leaves(bio_graph):
 
 
 def test_total_count(bio_graph):
-    total_count1 = bio_graph[0].total_count(
-        ["2 : node2", "2.1 : node21", "2.2 : node22"]
-    )
+    total_count1 = bio_graph[0].total_count(["2 : node2", "2.1 : node21", "2.2 : node22"])
     total_count2 = bio_graph[1].total_count(["3 : node3"])
     assert total_count1 == 4
     assert total_count2 == 0
