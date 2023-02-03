@@ -14,7 +14,7 @@ NodeAttr = Dict[str, Any]
 EdgeAttr = Dict[str, Any]
 
 
-class Header:
+class Header(Enum):
     Article = 'ARTI'
     Taxonomy = 'TAXO'
     MeSH = 'MeSH'
@@ -266,7 +266,7 @@ class BioGraph(nx.DiGraph):
         return header
 
     def get_table(self) -> Dict[NodeId, Dict]:
-        """Get table from graph.
+        """Get Dictionary table which contains Graph information per NodeId from graph.
 
         :return: table
         """
@@ -277,25 +277,18 @@ class BioGraph(nx.DiGraph):
             node_attr['relationship'] = {}
             table[node] = node_attr
         for s_node, e_node, edge_attr in edges:
-            edge_type = edge_attr['type']
-            BioGraph.__set_relationship(table, edge_type, s_node, e_node)
-            BioGraph.__set_relationship(table, EdgeType.reverse_typename(edge_type), e_node, s_node)
+            edge_types = {
+                'edge_type': {'edge_type': edge_attr['type'], 's_node': s_node, 'e_node': e_node},
+                'reversed_edge_type': {
+                    'edge_type': EdgeType.reverse_typename(edge_attr['type']), 's_node': e_node, 'e_node': s_node}
+                          }
+
+            for key in edge_types.keys():
+                if edge_types[key]['edge_type'] in table[s_node]['relationship']:
+                    table[s_node]['relationship'][edge_types[key]['edge_type']].append(e_node)
+                else:
+                    table[s_node]['relationship'][edge_types[key]['edge_type']] = [e_node]
         return table
-
-    @staticmethod
-    def __set_relationship(table: Dict, edge_type: str, s_node: str, e_node: str):
-        """ Set relationship attributes in table
-
-        :param table: entities table
-        :param edge_type: type of edge
-        :param s_node: start node
-        :param e_node: end node
-        :return:
-        """
-        if edge_type in table[s_node]['relationship']:
-            table[s_node]['relationship'][edge_type].append(e_node)
-        else:
-            table[s_node]['relationship'][edge_type] = [e_node]
 
     @staticmethod
     def create_node_id(header: Header, raw_id: Union[int, str]) -> str:
@@ -649,15 +642,15 @@ class ClassyFireGraph(HierarchicalGraph):
         # nodes and edges may have duplicated elements
         return cls(nodes, edges)
 
-    @staticmethod
-    def nodes_and_edges_from_entity(entity: Dict[str, Union[str, Dict]]):
+    @classmethod
+    def nodes_and_edges_from_entity(cls, entity: Dict[str, Union[str, Dict]]):
         """
         make nodes and edges from entity queried by classyfire_API
         :param entity:
         :return:
         """
         nodes, lineage, lineage_ids = [], [], []
-        inchikey = entity['inchikey']
+        inchikey = entity['inchikey'][9:]  # InChiKey=xxx -> xxx
         for level in ['kingdom', 'superclass', 'class', 'subclass']:
             if entity[level] == entity['direct_parent']:
                 break
@@ -665,7 +658,8 @@ class ClassyFireGraph(HierarchicalGraph):
         lineage += entity['intermediate_nodes']
         lineage.append(entity['direct_parent'])
         for level, node in zip(ClassyFireGraph.LEVEL_INDEX, lineage):
-            node_id = HierarchicalGraph.create_node_id(Header.ChemOnto, node['chemont_id'][10:])  # CHEMONTID:0000000
+            chemont_raw_id = node['chemont_id'][10:]  # CHEMONTID:xxx -> xxx
+            node_id = cls.create_node_id(Header.ChemOnto.value, chemont_raw_id)
             nodes.append((node_id, {
                 'level': level,
                 'name': node['name'],
@@ -674,13 +668,16 @@ class ClassyFireGraph(HierarchicalGraph):
                 'type': NodeType.ChemOnto.value
             }))
             lineage_ids.append(node_id)
-        nodes.append((HierarchicalGraph.create_node_id(Header.Chemical, inchikey[9:]), {
+        nodes.append((cls.create_node_id(Header.Chemical.value, inchikey), {
             'smiles': entity['smiles'],
             'molecular_framework': entity['molecular_framework'],
             'parent': lineage_ids[-1],
             'type': NodeType.Chemical.value
         }))
-        edges = [(node1[0], node2[0], {'type': EdgeType.INCLUDES.value}) for (node1, node2) in zip(nodes, nodes[1:-1])]
+        edges = [
+            (node[0], reversed_node[0], {'type': EdgeType.INCLUDES.value})
+            for (node, reversed_node) in zip(nodes, nodes[1:-1])
+        ]
         if len(nodes) > 1:
             edges.append((nodes[-2][0], nodes[-1][0], {'type': EdgeType.CONTAINS.value}))
         return nodes, edges

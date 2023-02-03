@@ -123,11 +123,11 @@ def flatten_list(lst):
     return list(itertools.chain.from_iterable(lst))
 
 
-def iter_grouper(n: int, iterable: Iterable):
+def iter_grouper(chunk_size: int, iterable: Iterable):
     """returns iterator that chunks iterable"""
     it = iter(iterable)
     while True:
-        chunk_it = itertools.islice(it, n)
+        chunk_it = itertools.islice(it, chunk_size)
         try:
             first_el = next(chunk_it)
         except StopIteration:
