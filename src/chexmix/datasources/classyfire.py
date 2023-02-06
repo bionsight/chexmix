@@ -34,7 +34,7 @@ def query(chem_smileses: List[str], delay: float = 0.2, chunk_size: int = 10) ->
                 f'{CLASSYFIRE_URL}/queries/{req_post.json()["id"]}.json', headers=headers
             )
             if not req_get.ok:
-                log.warning(f"Could not get Classyfire information for {smileses}")
+                log.warning(f"Could not get Classyfire information for {req_post.json()['id']}")
                 break
             sleep(delay)
         query_output += req_get.json()["entities"]
