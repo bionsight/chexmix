@@ -37,13 +37,8 @@ def test_TaxonomyGraph(taxonomy_table):
 
 def test_create_node_name():
     assert graph.BioGraph.create_node_name(graph.NodeType.Taxonomy, 9606) == "TAXO:9606"
-    assert (
-        graph.BioGraph.create_node_name(graph.NodeType.MeSH, "D012345")
-        == "MESH:D012345"
-    )
-    assert (
-        graph.BioGraph.create_node_name(graph.NodeType.Article, 332156) == "ARTI:332156"
-    )
+    assert graph.BioGraph.create_node_name(graph.NodeType.MeSH, "D012345") == "MESH:D012345"
+    assert graph.BioGraph.create_node_name(graph.NodeType.Article, 332156) == "ARTI:332156"
 
 
 def test_intersection(bio_graph):
