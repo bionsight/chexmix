@@ -327,15 +327,14 @@ class PubMedGraph(BioGraph):
         :return: graph for export
         """
         export_graph = nx.DiGraph()
-        keyword_nodes = []
-        for node, attr in self.nodes().items():
-            if attr['type'] == NodeType.Keyword.value:
-                keyword_nodes.append((node, {'type': NodeType.Keyword.value}))
-                continue
-            export_graph.add_nodes_from(
-                [(node, {'type': attr['type'], 'title': str(attr['Title']), 'LastAuthor': str(attr['LastAuthor'])})])
+        for node, attrs in self.nodes().items():
+            attr = {}
+            for k, v in attrs.items():
+                for dtype in [str, int, float, bool]:
+                    if isinstance(v, dtype):
+                        attr[k] = dtype(v)
+            export_graph.add_nodes_from([(node, attr)])
         edges = [(node1, node2, {'type': EdgeType.MENTIONED.value}) for node1, node2 in self.edges()]
-        export_graph.add_nodes_from(keyword_nodes)
         export_graph.add_edges_from(edges)
         return export_graph
 
