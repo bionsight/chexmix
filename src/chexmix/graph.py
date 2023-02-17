@@ -328,11 +328,7 @@ class PubMedGraph(BioGraph):
         """
         export_graph = nx.DiGraph()
         for node, attrs in self.nodes().items():
-            attr = {}
-            for k, v in attrs.items():
-                for dtype in [str, int, float, bool]:
-                    if isinstance(v, dtype):
-                        attr[k] = dtype(v)
+            attr = {k: dtype(v) for k, v in attrs.items() for dtype in [str, int, float, bool] if isinstance(v, dtype)}
             export_graph.add_nodes_from([(node, attr)])
         edges = [(node1, node2, {'type': EdgeType.MENTIONED.value}) for node1, node2 in self.edges()]
         export_graph.add_edges_from(edges)
