@@ -134,6 +134,3 @@ dmypy.json
 
 #DS_store
 .DS_Store
-
-# Pycharm
-.idea
