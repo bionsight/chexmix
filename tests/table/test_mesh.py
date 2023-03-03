@@ -1,7 +1,7 @@
 import pytest
 
 from chexmix.datasources import mesh
-from chexmix.table import MeSH
+from chexmix.table import mesh as mesh_table
 
 
 @pytest.fixture
@@ -9,7 +9,7 @@ def a_mesh(monkeypatch, mesh_table):
     def mesh_table_mock():
         return mesh_table
     monkeypatch.setattr(mesh, 'load_mesh', mesh_table_mock)
-    return MeSH('MSHD:D050197', {'APPERAED_IN': ['ARTI:33989636']})
+    return mesh_table('MSHD:D050197', {'APPERAED_IN': ['ARTI:33989636']})
 
 
 def test_mesh_table(a_mesh):

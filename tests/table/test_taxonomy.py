@@ -1,7 +1,7 @@
 import pytest
 
 from chexmix.datasources import taxonomy
-from chexmix.table import Taxonomy
+from chexmix.table import taxonomy as taxonomy_table
 
 
 @pytest.fixture
@@ -9,7 +9,7 @@ def a_taxonomy(monkeypatch, taxonomy_table):
     def taxonomy_table_mock():
         return taxonomy_table
     monkeypatch.setattr(taxonomy, 'load_taxonomy', taxonomy_table_mock)
-    return Taxonomy('TAXO:9606', {'APPERAED_IN': ['ARTI:33992036']})
+    return taxonomy_table('TAXO:9606', {'APPERAED_IN': ['ARTI:33992036']})
 
 
 def test_taxonomy_table(a_taxonomy):
