@@ -3,8 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, List, Set
 
-import chexmix.types as types
-import chexmix.utils as utils
+from chexmix import types, utils
 
 log = logging.getLogger(__name__)
 
@@ -14,17 +13,19 @@ class Node:
     id: Any
     name: str
     entity: Any  # TODO: this should be entity
-    parents: List['Node'] = field(default_factory=list)
-    children: List['Node'] = field(default_factory=list)
+    parents: List["Node"] = field(default_factory=list)
+    children: List["Node"] = field(default_factory=list)
     publications: Set[types.PubTator] = field(default_factory=set)
     subpublications: Set[types.PubTator] = field(default_factory=set)  # publications of descendants
 
     def __repr__(self):
-        return f'Node(id={self.id!r}, name={self.name!r}, entity={self.entity!r}, ' \
-               f'parents=[...{len(self.parents)!r} parents], ' \
-               f'children=[...{len(self.children)} children], ' \
-               f'publications=[...{len(self.publications)} publications], ' \
-               f'subpublications=[...{len(self.subpublications)} subpublications])'
+        return (
+            f"Node(id={self.id!r}, name={self.name!r}, entity={self.entity!r}, "
+            f"parents=[...{len(self.parents)!r} parents], "
+            f"children=[...{len(self.children)} children], "
+            f"publications=[...{len(self.publications)} publications], "
+            f"subpublications=[...{len(self.subpublications)} subpublications])"
+        )
 
 
 class Hierarchy(ABC):
@@ -61,13 +62,10 @@ class Hierarchy(ABC):
             try:
                 node = self.get_node(entity_id)
             except KeyError:
-                prefix = {
-                    types.MeSH: 'MESH',
-                    types.Taxonomy: 'TAXO',
-                }[self.node_type]
+                prefix = {types.MeSH: "MESH", types.Taxonomy: "TAXO"}[self.node_type]
 
                 if entity_id.startswith(prefix):
-                    log.warning(f'{entity_id} is not found.')
+                    log.warning(f"{entity_id} is not found.")
                 continue
             node.publications.add(publ)
 
@@ -86,17 +84,18 @@ class Hierarchy(ABC):
     def _nodes2dict(self, nodes, sort_by):
         if sort_by is not None:
             sort_key = {
-                'publications': lambda n: len(n.publications),
-                'subpublications': lambda n: len(n.subpublications),
-                'total_publications': lambda n: len(n.publications | n.subpublications),
-                'name': lambda n: n.name or n.id,
-                'id': lambda n: n.id,
+                "publications": lambda n: len(n.publications),
+                "subpublications": lambda n: len(n.subpublications),
+                "total_publications": lambda n: len(n.publications | n.subpublications),
+                "name": lambda n: n.name or n.id,
+                "id": lambda n: n.id,
             }[sort_by]
             nodes = sorted(nodes, key=sort_key, reverse=True)
-
-        return {
-            f'{n.name} ({len(n.publications)}/{(len(n.publications | n.subpublications))})':
-                self._nodes2dict(n.children, sort_by) for n in nodes}
+        ret = {}
+        for n in nodes:
+            node_name = f"{n.name} ({len(n.publications)}/{(len(n.publications | n.subpublications))})"
+            ret[node_name] = self._nodes2dict(n.children, sort_by)
+        return ret
 
     def to_dict(self, sort_by=None):
         return self._nodes2dict(self.roots, sort_by)
@@ -130,11 +129,11 @@ class TaxonomyHierarchy(Hierarchy):
 
     def _add_node(self, tax):
         if tax.id in self._tax_tbl:
-            raise Exception(f'duplicated id {tax.id}')
+            raise Exception(f"duplicated id {tax.id}")
         self._tax_tbl[tax.id] = Node(tax.id, tax.name, tax)
 
     def _update_parents(self, node):
-        ancestors = (node.entity.ancestors[-1:] if len(node.entity.ancestors) > 0 else [])
+        ancestors = node.entity.ancestors[-1:] if len(node.entity.ancestors) > 0 else []
         for anc in ancestors:
             if self._tax_tbl[anc.id] not in node.parents:
                 node.parents.append(self._tax_tbl[anc.id])
@@ -168,8 +167,8 @@ class MeSHHierarchy(Hierarchy):
 
     @staticmethod
     def ancestor_tree_numbers(tree_number):
-        tokens = tree_number.split('.')
-        return ['.'.join(tokens[:idx]) for idx in range(1, len(tokens))]
+        tokens = tree_number.split(".")
+        return [".".join(tokens[:idx]) for idx in range(1, len(tokens))]
 
     @staticmethod
     def get_unidentified_tree_numbers(meshs):
@@ -178,15 +177,15 @@ class MeSHHierarchy(Hierarchy):
         :param meshs:
         :return:
         """
-        all_meshs = set(meshs) | set(
-            heading for mesh in meshs if mesh.headings is not None for heading in mesh.headings)
+        all_meshs = set(meshs) | set(heading for mesh in meshs if mesh.headings for heading in mesh.headings)
 
         tree_numbers = set(
             utils.flatten_list([mesh.tree_numbers for mesh in all_meshs if mesh.tree_numbers is not None])
         )
-        return set(utils.flatten_list(
-            [MeSHHierarchy.ancestor_tree_numbers(tree_number) for tree_number in tree_numbers]
-        )) - tree_numbers
+        meshs_tree_numbers = []
+        for tree_number in tree_numbers:
+            meshs_tree_numbers.append(MeSHHierarchy.ancestor_tree_numbers(tree_number))
+        return set(utils.flatten_list(meshs_tree_numbers)) - tree_numbers
 
     @property
     def nodes(self):
@@ -214,8 +213,9 @@ class MeSHHierarchy(Hierarchy):
     def _update_parents(self, node):
         mesh = node.entity
         if mesh.tree_numbers is not None:
-            parent_tree_numbers = [tree_number.rsplit('.', 1)[0]
-                                   for tree_number in mesh.tree_numbers if '.' in tree_number]
+            parent_tree_numbers = [
+                tree_number.rsplit(".", 1)[0] for tree_number in mesh.tree_numbers if "." in tree_number
+            ]
             parent_ids = set(self._tree_number2id[tree_number] for tree_number in parent_tree_numbers)
             node.parents.extend(self._mesh_tbl[parent_id] for parent_id in parent_ids)
         if mesh.headings is not None:
@@ -231,6 +231,6 @@ class MeSHHierarchy(Hierarchy):
             assert isinstance(mesh, self.node_type)
             self._add_node(mesh)
 
-        for mesh_id, node in self._mesh_tbl.items():
+        for _, node in self._mesh_tbl.items():
             self._update_parents(node)
             self._update_children(node)

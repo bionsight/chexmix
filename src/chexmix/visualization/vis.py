@@ -3,17 +3,8 @@ import uuid
 
 import js
 from IPython.display import HTML, Javascript, display
-
-DEFAULT_PHYSICS = {
-    "physics": {
-        "barnesHut": {
-            "gravitationalConstant": -15150,
-            "centralGravity": 3.45,
-            "springLength": 261,
-            "damping": 0.3
-        }
-    }
-}
+BARNESHUT = {"gravitationalConstant": -15150, "centralGravity": 3.45, "springLength": 261, "damping": 0.3}
+DEFAULT_PHYSICS = {"physics": {"barnesHut": BARNESHUT}}
 
 
 def init():
@@ -26,7 +17,7 @@ def draw_network(nodes, edges, physics=True):
     create a DOM and display the graph
     """
     unique_id = str(uuid.uuid4())
-    display(HTML("<div id={id} style='height: 600px;'></div>".format(id=unique_id)))
+    display(HTML(f"<div id={unique_id} style='height: 600px;'></div>"))
     js_template = """
         var nodes = {nodes};
         var edges = {edges};
@@ -65,10 +56,8 @@ def draw_network(nodes, edges, physics=True):
         }};
         var network = new vis.Network(container, data, options);
     """
-    display(Javascript(js_template.format(id=unique_id,
-                                          nodes=json.dumps(nodes),
-                                          edges=json.dumps(edges),
-                                          physics=json.dumps(physics))))
+    js_nodes, js_edges, js_physic = json.dumps(nodes), json.dumps(edges), json.dumps(physics)
+    display(Javascript(js_template.format(id=unique_id, nodes=js_nodes, edges=js_edges, physics=js_physic)))
 
 
 def draw(graph, options, physics=True, limit=100):
@@ -102,12 +91,12 @@ def draw(graph, options, physics=True, limit=100):
     nodes = []
     edges = []
 
-    def get_vis_info(node, id):
+    def get_vis_info(node, node_id):
         node_label = list(node.labels)[0]
         prop_key = options.get(node_label)
         vis_label = node.get(prop_key, "")
 
-        return {"id": id, "label": vis_label, "group": node_label, "title": repr(node)}
+        return {"id": node_id, "label": vis_label, "group": node_label, "title": repr(node)}
 
     for row in data:
         source_node = row[0]
@@ -133,7 +122,7 @@ def draw(graph, options, physics=True, limit=100):
 
 
 def get_vis_edge_info(r):
-    return ({"from": id(r.start_node()), "to": id(r.end_node()), "label": r.type()})
+    return {"from": id(r.start_node()), "to": id(r.end_node()), "label": r.type()}
 
 
 def get_vis_node_info(node, options):
