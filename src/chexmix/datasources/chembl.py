@@ -17,6 +17,5 @@ def similarity_search(smiles, similarity):
 def get_activity_df(chembl_ids, chunk_size=50):
     activities = []
     for idx in range(0, len(chembl_ids), chunk_size):
-        # blow line is a false-positive of black. fix this later
-        activities += new_client.activity.filter(molecule_chembl_id__in=chembl_ids[idx: idx + chunk_size])  # fmt: skip
+        activities += new_client.activity.filter(molecule_chembl_id__in=chembl_ids[idx: idx + chunk_size])
     return pd.DataFrame(activities)

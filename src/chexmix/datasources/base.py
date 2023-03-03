@@ -1,4 +1,3 @@
-# pylint: disable=duplicate-code
 import logging
 
 log = logging.getLogger(__name__)
