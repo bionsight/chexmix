@@ -1,11 +1,11 @@
 import pytest
 
-from chexmix.table import gene
+from chexmix.table import Gene
 
 
 @pytest.fixture
 def gene():
-    return gene(
+    return Gene(
         'GENE:30245', 'wt1a', {
             'APPEARED_IN': [
                 'ARTI:33297144', 'ARTI:32697314', 'ARTI:32633330', 'ARTI:29579206', 'ARTI:28738802', 'ARTI:28409341',

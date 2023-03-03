@@ -1,11 +1,11 @@
 import pytest
 
-from chexmix.table import publication
+from chexmix.table import Publication
 
 
 @pytest.fixture
 def publication():
-    return publication(
+    return Publication(
         'ARTI:3018002', {'_APPEARED_IN': []},
         'Purified HDL-apolipoproteins, A-I and C-III, substitute for HDL in '
         'promoting the growth of SV40-transformed REF52 cells in serum-free medium.',

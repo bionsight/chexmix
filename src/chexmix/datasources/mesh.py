@@ -2,7 +2,7 @@ import logging
 from typing import Dict, Union, List
 
 from chexmix import utils
-from chexmix.data import mesh
+from chexmix.data import MeSH
 from chexmix.graph import EdgeType, NodeType, MeSHGraph
 
 log = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ def get_parent_tree_number(tree_number: str) -> str:
 
 
 def parse_descriptor(
-        descriptor: Dict[str, Union[str, List[Dict], List[str]]]
+    descriptor: Dict[str, Union[str, List[Dict], List[str]]]
 ) -> Dict[str, Union[str, Dict[str, List[str]]]]:
     return {
         'id': MeSHGraph.get_mesh_node_id_from(descriptor['DescriptorUI']),
@@ -26,7 +26,7 @@ def parse_descriptor(
 
 
 def parse_supplement(
-        supplement: Dict[str, Union[str, List[Dict], List[str]]]
+    supplement: Dict[str, Union[str, List[Dict], List[str]]]
 ) -> Dict[str, Union[str, Dict[str, List[str]]]]:
     return {
         'id': MeSHGraph.get_mesh_node_id_from(supplement['SupplementalRecordUI']),
@@ -43,7 +43,7 @@ def parse_supplement(
 
 @utils.cached(utils.data_file('mesh.pkl'))
 def load_mesh() -> Dict[str, Union[str, List[str], List[Dict]]]:
-    mt = mesh.load_XML()
+    mt = MeSH.load_XML()
 
     desc = [parse_descriptor(d) for d in mt['descriptor']]
     supp = [parse_supplement(s) for s in mt['supplement']]
