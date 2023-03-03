@@ -35,4 +35,4 @@ def do_something(ctx):
 
 
 def main():
-    cli(obj={})  # pylint: disable=unexpected-keyword-arg, no-value-for-parameter
+    cli(obj={})
