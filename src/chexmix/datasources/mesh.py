@@ -13,7 +13,7 @@ def get_parent_tree_number(tree_number: str) -> str:
 
 
 def parse_descriptor(
-descriptor: Dict[str, Union[str, List[Dict], List[str]]]
+        descriptor: Dict[str, Union[str, List[Dict], List[str]]]
 ) -> Dict[str, Union[str, Dict[str, List[str]]]]:
     return {
         'id': MeSHGraph.get_mesh_node_id_from(descriptor['DescriptorUI']),
@@ -26,7 +26,7 @@ descriptor: Dict[str, Union[str, List[Dict], List[str]]]
 
 
 def parse_supplement(
-    supplement: Dict[str, Union[str, List[Dict], List[str]]]
+        supplement: Dict[str, Union[str, List[Dict], List[str]]]
 ) -> Dict[str, Union[str, Dict[str, List[str]]]]:
     return {
         'id': MeSHGraph.get_mesh_node_id_from(supplement['SupplementalRecordUI']),
