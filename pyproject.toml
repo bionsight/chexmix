@@ -1,0 +1,11 @@
+[tool.mypy]
+python_version = 3.9
+# gradually adapt mypy, recursive type is not supported yet
+ignore_errors = true
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+include = '\.pyi?$'
+skip-string-normalization = true
