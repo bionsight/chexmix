@@ -1,27 +1,21 @@
 import os
 import zipfile
-from typing import Dict, List, Union, Any
+
 import pandas as pd
 
-from chexmix import utils
+import chexmix.utils as utils
 from chexmix.env import data_path
 
 TAXONOMY_PATH = os.path.join(data_path, 'taxonomy/new_taxdump')
 ZIP_FILE = os.path.join(TAXONOMY_PATH, 'new_taxdump.zip')
 
 
-def read_csv_(file_name_or_buf: Union[str, Any], col_names: List[str]) -> pd.DataFrame:
-    return pd.read_csv(
-        file_name_or_buf,
-        sep='|',
-        header=None,
-        index_col=False,
-        names=col_names,
-        converters={name: utils.strip for name in col_names},
-    )
+def read_csv_(file_name_or_buf, col_names):
+    return pd.read_csv(file_name_or_buf, sep='|', header=None, index_col=False,
+                       names=col_names, converters={name: utils.strip for name in col_names})
 
 
-def read_taxonomy_(zfile: Union[str, Any]) -> Dict[str, pd.DataFrame]:
+def read_taxonomy_(zfile):
     """
     The followings are taxonomy related files and their contents:
 
@@ -84,99 +78,62 @@ def read_taxonomy_(zfile: Union[str, Any]) -> Dict[str, pd.DataFrame]:
 
     """
 
-    content_column_table = {
-        'nodes.dmp': [
-            'tax_id',
-            'parent_tax_id',
-            'rank',
-            'embl_code',
-            'div',
-            'div_flag',
-            'GC',
-            'inherited_GC_flag',
-            'MGC',
-            'inherited_MGC_flag',
-            'genbank_hidden',
-            'hidden_subtree',
-            'comments',
-            'plastid',
-            'PGC_flag',
-            'specified_species',
-            'HGC',
-            'HGC_flag',
-        ],
-        'names.dmp': ['tax_id', 'name_txt', 'unique_name', 'name_class'],
-        'gencode.dmp': ['GC', 'abbr', 'name', 'cde', 'starts'],
-        'rankedlineage.dmp': [
-            'tax_id',
-            'tax_name',
-            'species',
-            'genus',
-            'family',
-            'order',
-            'class',
-            'phylum',
-            'kingdom',
-            'superkingdom',
-        ],
-        'taxidlineage.dmp': ['tax_id', 'lineage'],
-    }
+    content_column_table = {'nodes.dmp': ['tax_id', 'parent_tax_id', 'rank', 'embl_code', 'div', 'div_flag',
+                                          'GC', 'inherited_GC_flag', 'MGC', 'inherited_MGC_flag',
+                                          'genbank_hidden', 'hidden_subtree', 'comments', 'plastid', 'PGC_flag',
+                                          'specified_species', 'HGC', 'HGC_flag'],
+                            'names.dmp': ['tax_id', 'name_txt', 'unique_name', 'name_class'],
+                            'gencode.dmp': ['GC', 'abbr', 'name', 'cde', 'starts'],
+                            'rankedlineage.dmp': ['tax_id', 'tax_name', 'species', 'genus', 'family',
+                                                  'order', 'class', 'phylum', 'kingdom', 'superkingdom'],
+                            'taxidlineage.dmp': ['tax_id', 'lineage']}
 
-    content_table = {
-        filename: read_csv_(zfile.open(filename), col_names) for filename, col_names in content_column_table.items()
-    }
+    content_table = {filename: read_csv_(zfile.open(filename), col_names)
+                     for filename, col_names in content_column_table.items()}
 
     return content_table
 
 
-def merge_dfs(dfs: List[pd.DataFrame], on: str, how: str = 'inner') -> pd.DataFrame:
-    ret_df = dfs[0]
-    for df in dfs[1:]:
+def merge_dfs(df_list, on, how='inner'):
+    ret_df = df_list[0]
+
+    for df in df_list[1:]:
         ret_df = ret_df.merge(df, on=on, how=how)
 
     return ret_df
 
 
-def normalize_tax(tax) -> Dict[str, int]:
+def normalize_tax(tax):
     """normalize taxonomy data"""
     tax = utils.remove_none_vals(tax)
-    tax = {
-        k: int(v)
-        if k
-        in [
-            'tax_id',
-            'parent_tax_id',
-            'div',
-            'div_flag',
-            'GC',
-            'inherited_GC_flag',
-            'MGC',
-            'inherited_MGC_flag',
-            'genbank_hidden',
-            'hidden_subtree',
-            'specified_species',
-        ]
-        else v
-        for k, v in tax.items()
-    }
+    tax = {k: int(v) if k in ['tax_id',
+                              'parent_tax_id',
+                              'div',
+                              'div_flag',
+                              'GC',
+                              'inherited_GC_flag',
+                              'MGC',
+                              'inherited_MGC_flag',
+                              'genbank_hidden',
+                              'hidden_subtree',
+                              'specified_species'] else v for k, v in tax.items()}
     tax['lineage'] = [int(token) for token in tax['lineage'].split()]
 
     return tax
 
 
-def normalize_gc(gc: Dict) -> Dict:
+def normalize_gc(gc):
     """normalize gencode data"""
 
     gc['GC'] = int(gc['GC'])
 
     return gc
 
-
 ################################################################################
 # Public
 
 
-def load_taxdump() -> Dict[str, List[dict]]:
+def load_taxdump():
     """
     returns {'taxonomy': taxonomy_table, 'gencode': gencode_table}, where
     the tables are lists of dict.
@@ -185,10 +142,11 @@ def load_taxdump() -> Dict[str, List[dict]]:
     with zipfile.ZipFile(ZIP_FILE, 'r') as zfile:
         content_table = read_taxonomy_(zfile)
         taxonomy_table = merge_dfs(
-            [content_table[x] for x in ['nodes.dmp', 'rankedlineage.dmp', 'taxidlineage.dmp']]
-            + [content_table['names.dmp'].groupby('tax_id')['name_txt'].apply(','.join).reset_index()],
-            on='tax_id',
-        ).to_dict('records')
+            [content_table[x] for x in ['nodes.dmp', 'rankedlineage.dmp', 'taxidlineage.dmp']] +
+            [content_table['names.dmp'].groupby('tax_id')['name_txt'].apply(lambda x: ','.join(x)).reset_index()],
+            on='tax_id').to_dict('records')
         taxonomy_table = [normalize_tax(tax) for tax in taxonomy_table]
         gencode_table = [normalize_gc(gc) for gc in content_table['gencode.dmp'].to_dict('records')]
-        return {'taxonomy': taxonomy_table, 'gencode': gencode_table}  # 'raw': content_table,
+        return {  # 'raw': content_table,
+            'taxonomy': taxonomy_table,
+            'gencode': gencode_table}

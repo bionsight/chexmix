@@ -2,9 +2,10 @@ import json
 import uuid
 from string import Template
 
-from chexmix.visualization import js
 import pkg_resources
 from IPython.display import HTML, Javascript, display
+
+import chexmix.visualization.js as js
 
 
 def init():
@@ -17,11 +18,13 @@ def inject_chart_js(data, height=932, width=932):
     unique_id = str(uuid.uuid4())
     display(HTML(f"<div id={unique_id} style='height: {height}px;width: {width}px;'></div>"))
 
-    with open(js_file, 'r', encoding='utf-8') as f:
+    with open(js_file, 'r') as f:
         circle_packing_template = Template(f.read())
-        js_data = json.dumps(data)
-        cp_template = circle_packing_template.substitute(id=unique_id, width=width, height=height, data=js_data)
-        display(Javascript(cp_template))
+
+        display(Javascript(circle_packing_template.substitute(id=unique_id,
+                                                              width=width,
+                                                              height=height,
+                                                              data=json.dumps(data))))
 
 
 def form_data(node, normalize_func):

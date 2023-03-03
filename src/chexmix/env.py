@@ -13,5 +13,3 @@ email = os.environ.get("EMAIL")
 entrez_api_key = os.environ.get("ENTREZ_API_KEY")
 
 data_path = os.environ.get("DATA_PATH", os.path.abspath(os.path.join(os.path.dirname(__file__), '../../data')))
-
-enable_cache = os.environ.get("ENABLE_CACHE", False)
