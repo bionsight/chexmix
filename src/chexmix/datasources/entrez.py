@@ -1,4 +1,5 @@
 import logging
+from typing import List, Dict, Union
 
 from Bio import Entrez
 from tqdm.auto import tqdm
@@ -15,7 +16,7 @@ if hasattr(env, 'email'):
     Entrez.email = env.email
 
 
-def search_pubmed(term, batch_size=3000):
+def search_pubmed(term: str, batch_size=3000) -> List[Dict[str, Union[str, List[str], Dict]]]:
     log.info(f'search pubmed: {term}')
     search_handle = Entrez.esearch(db='pubmed', term=term, usehistory='y', retmax=0)
     search_result_payload = Entrez.read(search_handle)
@@ -25,12 +26,14 @@ def search_pubmed(term, batch_size=3000):
 
     ret = []
     for retstart in tqdm(range(0, total_count, batch_size)):
-        summary_handle = Entrez.esummary(db='pubmed',
-                                         query_key=search_result_payload['QueryKey'],
-                                         WebEnv=search_result_payload['WebEnv'],
-                                         retstart=retstart,
-                                         retmax=batch_size,
-                                         retmode='xml')
+        summary_handle = Entrez.esummary(
+            db='pubmed',
+            query_key=search_result_payload['QueryKey'],
+            WebEnv=search_result_payload['WebEnv'],
+            retstart=retstart,
+            retmax=batch_size,
+            retmode='xml',
+        )
         ret += Entrez.read(summary_handle)
         summary_handle.close()
 
