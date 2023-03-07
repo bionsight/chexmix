@@ -1,6 +1,6 @@
 import os
 import zipfile
-from typing import Dict, List, Union, Any
+from typing import Dict, IO, List, Union
 import pandas as pd
 
 from chexmix import utils
@@ -10,7 +10,7 @@ TAXONOMY_PATH = os.path.join(data_path, 'taxonomy/new_taxdump')
 ZIP_FILE = os.path.join(TAXONOMY_PATH, 'new_taxdump.zip')
 
 
-def read_csv_(file_name_or_buf: Union[str, Any], col_names: List[str]) -> pd.DataFrame:
+def read_csv_(file_name_or_buf: Union[str, IO], col_names: List[str]) -> pd.DataFrame:
     return pd.read_csv(
         file_name_or_buf,
         sep='|',
@@ -21,7 +21,7 @@ def read_csv_(file_name_or_buf: Union[str, Any], col_names: List[str]) -> pd.Dat
     )
 
 
-def read_taxonomy_(zfile: Union[str, Any]) -> Dict[str, pd.DataFrame]:
+def read_taxonomy_(zfile: IO) -> Dict[str, pd.DataFrame]:
     """
     The followings are taxonomy related files and their contents:
 

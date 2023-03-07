@@ -24,11 +24,8 @@ class MeSHGraph(HierarchicalGraph):
         :param bioentity: mesh bio entity
         :return: node id
         """
-        if bioentity[0] == "D":
-            node_id = HierarchicalGraph.create_node_id(Header.MeSHD, bioentity)
-        else:
-            node_id = HierarchicalGraph.create_node_id(Header.MeSHC, bioentity)
-        return node_id
+        mesh_header = Header.MeSHD if bioentity[0] == "D" else Header.MeSHC
+        return HierarchicalGraph.create_node_id(mesh_header, bioentity)
 
     def is_descendant(self, node_id1: str, node_id2: str) -> bool:
         node_data = self.nodes.data()

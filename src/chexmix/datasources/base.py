@@ -40,7 +40,7 @@ def add_total_pmids(node):
     return total_pmids
 
 
-def convert_pmid(node_table, root):
+def replace_pmid_in(node_table, root):
     for v in node_table.values():
         v['pmids'] = []
         if root is not None:
@@ -50,7 +50,7 @@ def convert_pmid(node_table, root):
 
 def add_pmids(node_table, annotation_table, prefix, root):
     prefix_len = len(prefix)
-    node_table = convert_pmid(node_table, root)
+    node_table = replace_pmid_in(node_table, root)
 
     for pmid, annotations in annotation_table.items():
         for _id in annotations:
