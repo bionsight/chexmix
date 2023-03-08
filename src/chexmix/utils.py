@@ -5,15 +5,15 @@ import os
 import pickle
 import re
 from contextlib import contextmanager
+from typing import Any, Callable, Dict, Iterable, List
 
+from chexmix import env
 import pandas as pd
-
-import chexmix.env as env
 
 log = logging.getLogger(__name__)
 
 
-def basename(path):
+def basename(path) -> str:
     """get base name from path, i.e., filename without ext"""
 
     basename_, ext = os.path.splitext(os.path.basename(path))
@@ -23,56 +23,55 @@ def basename(path):
     return basename_
 
 
-def data_file(file_name):
+def data_file(file_name: str) -> str:
     return os.path.join(env.data_path, file_name)
 
 
-def save(o, filename):
+def save(data: Any, filename: str) -> None:
     with open(filename, 'wb') as f:
-        pickle.dump(o, f)
+        pickle.dump(data, f)
 
 
-def load(filename):
+def load(filename: str) -> Any:
     with open(filename, 'rb') as f:
         return pickle.load(f)
 
 
-__disable_cache = False         # TODO: hide the global variable
-
-
 @contextmanager
 def disable_cache():
-    global __disable_cache
-    old_disable_cache = __disable_cache
-    __disable_cache = True
+    enable_cache = env.enable_cache
 
     try:
-        yield old_disable_cache
+        if not enable_cache:
+            yield True
+        else:
+            yield False
 
     finally:
-        __disable_cache = old_disable_cache
+        pass
 
 
-def cached(pkl_filename):
-    global __disable_cache
+def cached(pkl_filename: str) -> Callable:
+    diable_cache = env.enable_cache
 
     def inner_decorator(f):
         def run_func(*args, reset=False, **kwargs):
-            if (not __disable_cache) and (not reset) and os.path.isfile(pkl_filename):
+            if (not diable_cache) and (not reset) and os.path.isfile(pkl_filename):
                 log.info(f'load {pkl_filename}')
                 return load(pkl_filename)
-            else:
-                if __disable_cache or reset:
-                    log.info('forced to run')
-                ret = f(*args, **kwargs)
-                log.info(f'save {pkl_filename}')
-                save(ret, pkl_filename)
-                return ret
+            if diable_cache or reset:
+                log.info('forced to run')
+            ret = f(*args, **kwargs)
+            log.info(f'save {pkl_filename}')
+            save(ret, pkl_filename)
+            return ret
+
         return run_func
+
     return inner_decorator
 
 
-def first(iterable, condition=lambda x: True, default=None):
+def first(iterable: Iterable, condition=lambda x: True, default: Any = None) -> Any:
     """
     Returns the first item in the `iterable` that
     satisfies the `condition`.
@@ -114,29 +113,43 @@ def first(iterable, condition=lambda x: True, default=None):
     except StopIteration:
         if default is not None and condition(default):
             return default
-        else:
-            raise
+        raise
 
 
-def flatten_list(lst):
+def flatten_list(lst: List[Any]) -> List[Any]:
     """concatenate a list of lists"""
     return list(itertools.chain.from_iterable(lst))
 
 
-def open_mode(filename, mode):
+def iter_grouper(chunk_size: int, iterable: Iterable) -> itertools.chain:
+    """returns iterator that chunks iterable"""
+    it = iter(iterable)
+    while True:
+        chunk_it = itertools.islice(it, chunk_size)
+        try:
+            first_el = next(chunk_it)
+        except StopIteration:
+            return
+        yield itertools.chain((first_el,), chunk_it)
+
+
+def open_mode(filename: str, mode: str) -> str:
     if mode == 'r':
         return 'rt' if filename.endswith('.gz') else 'r'
     return mode
 
 
-def fopen(filename, mode='r'):
+def fopen(filename: str, mode='r') -> Any:
     """file open helper"""
     mode = open_mode(filename, mode)
-    return gzip.open(filename, mode) if filename.endswith('.gz') \
-        else open(filename, mode)
+    return (
+        gzip.open(filename, mode, encoding='utf-8')
+        if filename.endswith('.gz')
+        else open(filename, mode, encoding='utf-8')
+    )
 
 
-def strip(text):
+def strip(text: str) -> str:
     """strip str without Exception"""
     try:
         return text.strip()
@@ -144,11 +157,11 @@ def strip(text):
         return text
 
 
-def remove_none_vals(dt):
+def remove_none_vals(dt: Dict) -> Dict:
     """remove None values in a dictionary"""
     return {k: v for k, v in dt.items() if not pd.isnull(v)}
 
 
-def remove_symbols(s):
+def remove_symbols(s: str) -> str:
     """convert symbols to under bar"""
     return re.sub(r'[.,!?"\':;~() -]', '_', s)

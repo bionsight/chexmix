@@ -40,13 +40,17 @@ def add_total_pmids(node):
     return total_pmids
 
 
-def add_pmids(node_table, annotation_table, prefix, root):
-    prefix_len = len(prefix)
-
+def replace_pmid_in(node_table, root):
     for v in node_table.values():
         v['pmids'] = []
         if root is not None:
             v['total_pmids'] = set()
+    return node_table
+
+
+def add_pmids(node_table, annotation_table, prefix, root):
+    prefix_len = len(prefix)
+    node_table = replace_pmid_in(node_table, root)
 
     for pmid, annotations in annotation_table.items():
         for _id in annotations:
@@ -71,8 +75,11 @@ def add_pmids(node_table, annotation_table, prefix, root):
 
 
 def trim_tree(node, min_count=1):
-    children = [trim_tree(c, min_count=min_count)
-                for c in node['children'] if (c is not node) and (len(c['total_pmids']) >= min_count)]
+    children = [
+        trim_tree(c, min_count=min_count)
+        for c in node['children']
+        if (c is not node) and (len(c['total_pmids']) >= min_count)
+    ]
     node['children'] = children
     return node
 
